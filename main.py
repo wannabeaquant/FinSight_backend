@@ -2,6 +2,8 @@ from fetch_data import get_stock_summary
 from agents import hedge_fund_prompt, retail_prompt
 from llm_runner import run_agent_with_openrouter
 from debate import conduct_debate
+from colorama import Fore, Style, init
+init(autoreset=True)
 import os
 
 AGENTS = {
@@ -60,6 +62,10 @@ if __name__ == "__main__":
     if responses:
         print("\n📊 Final Results:")
         for agent, response in responses.items():
-            print(f"\n{agent}:")
+            print(f"\n{Fore.CYAN}{agent}:{Style.RESET_ALL}")
             print(response)
-            print("-"*80)
+            print(f"{Fore.LIGHTBLACK_EX}{'-'*80}{Style.RESET_ALL}")
+
+
+print("\n✅ Analysis complete. Exiting...\n")
+input("Press Enter to close...")
