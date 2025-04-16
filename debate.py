@@ -2,23 +2,35 @@ from llm_runner import run_agent_with_openrouter
 
 def conduct_debate(hedge_analysis, retail_analysis):
     DEBATE_PROMPT = f"""
-    [FINANCIAL DEBATE MODERATOR]
-    Analyze these two perspectives:
+[STRICT DEBATE FORMAT - USE BULLET POINTS]
 
-    🦈 Hedge Fund View:
-    {hedge_analysis}
+**Financial Debate Moderator Instructions**
+Analyze these perspectives:
 
-    🐂 Retail Investor View:
-    {retail_analysis}
+🦈 Hedge Fund Analysis:
+{hedge_analysis}
 
-    Identify:
-    1. 2 key areas of disagreement
-    2. 1 potential compromise
-    3. Final consensus recommendation (BUY/HOLD/SELL)
+🦍 Retail Investor Analysis:
+{retail_analysis}
 
-    Format:
-    🤝 Consensus: [RECOMMENDATION]
-    📌 Reasoning: [1-sentence explanation]
-    """
-    
+**Required Elements:**
+1. Identify 3 KEY DIFFERENCES in their approaches
+2. Find 1 UNEXPECTED COMMON GROUND
+3. Highlight the MOST CONTROVERSIAL POINT
+4. Final Recommendation (BUY/HOLD/SELL) with RISK LEVEL (1-5)
+
+**Output Format:**
+🤝|CONSENSUS: [RECOMMENDATION]  
+🔥|RISK LEVEL: [NUMBER]/5  
+💼|RATIONALE: [1-sentence summary]  
+⚔️|KEY DIFFERENCES:  
+- Difference 1  
+- Difference 2  
+- Difference 3  
+🕊️|COMMON GROUND:  
+- [Common point]  
+💣|CONTROVERSY:  
+- [Most contentious issue]  
+"""
+
     return run_agent_with_openrouter(DEBATE_PROMPT)

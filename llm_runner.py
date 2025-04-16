@@ -1,6 +1,7 @@
 import os
 from openai import OpenAI
 from tenacity import retry, stop_after_attempt, wait_exponential
+from validation import process_response
 
 # Initialize OpenAI client with the correct base URL and API key
 client = OpenAI(
@@ -33,8 +34,7 @@ def run_agent_with_openrouter(prompt):
             return completion.choices[0].message.content.strip()
         else:
             print("API Error: Received empty choices array")
-            return "Model response format error"
-
+            return process_response(completion.choices[0].message.content.strip())
+    
     except Exception as e:
-        print(f"API Error: {str(e)}")
-        return f"Model failed to respond: {str(e)}"
+        return f"Analysis failed: {str(e)}"

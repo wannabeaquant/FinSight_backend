@@ -21,17 +21,21 @@ def hedge_fund_prompt(data):
 
 def retail_prompt(data):
     return f"""
-[USE EMOJIS AND MEME REFERENCES - KEEP UNDER 200 TOKENS]
+[KEEP IT FUN! USE EMOJIS! MEME STOCK VIBES ONLY!]
 
-🚀 **{data['name']} Stock Breakdown** 🚀
+🔥 **{data['name']} STOCK HYPE CHECK** 🔥
 
-📈 Key Stats:
-- MCap: {data['market_cap']}
+📊 Quick Stats:
+- Market Cap: {data['market_cap']}
 - EPS: {data['eps']}
 
-💎 Diamond Hands or 💩 Paper Hands?
-- Hype factor analysis (1-5 rating)
-- Meme potential: {"🚀 Moon" if data['market_cap'] < 50000000000 else "😴 Sleepy"}
+💎 MEME POTENTIAL ANALYSIS:
+{"🚀 MOON SHOT ALERT!" if data['raw_data']['market_cap'] < 100_000_000_000 else "🐢 BOOMER STOCK"}
+{"🤑 EPS GROWTH HYPE!" if data['raw_data']['eps'] and data['raw_data']['eps'] > 2 else "😴 EPS SNOOZEFEST"}
 
-🏆 Final Call: [BULLISH/BEARISH] [BUY/HOLD/SELL]
+🤔 YOUR GUT SAYS:
+[1-2 sentences of pure emotion/meme logic]
+
+🏆 FINAL CALL: [BUY/HOLD/SELL] 
+[Include a meme reference or crypto analogy]
 """

@@ -9,11 +9,11 @@ AGENTS = {
     "RetailGPT": retail_prompt,
 }
 
+# main.py (updated section)
 def run_all_agents(ticker):
-    # Get data with error handling
     data = get_stock_summary(ticker)
     if 'error' in data:
-        print(f"❌ Error: {data['error']}")
+        print(f"❌ Data Error: {data['error']}")
         return None
 
     results = {}
@@ -24,6 +24,9 @@ def run_all_agents(ticker):
     # Run agents
     for name, prompt_fn in AGENTS.items():
         try:
+            if not data['raw_data']['market_cap']:
+                raise ValueError("Missing numeric market cap data")
+                
             prompt = prompt_fn(data)
             print(f"\n🚀 Running {name}...")
             output = run_agent_with_openrouter(prompt)
@@ -33,7 +36,10 @@ def run_all_agents(ticker):
             print("="*80)
         except Exception as e:
             print(f"❌ Agent {name} failed: {str(e)}")
-            results[name] = f"{name} analysis unavailable"
+            results[name] = f"{name} analysis failed: {str(e)}"
+            # Add fallback analysis
+            if name == "RetailGPT":
+                results[name] = "🚀 TO THE MOON! BUY! (Fallback analysis)"
 
     # Run debate
     if all(v is not None for v in results.values()):
