@@ -30,7 +30,9 @@ Analyze these perspectives:
 🕊️|COMMON GROUND:  
 - [Common point]  
 💣|CONTROVERSY:  
-- [Most contentious issue]  
+- [Most contentious issue]
+
+ONLY respond using the format above. Do NOT explain or repeat the instructions.
 """
 
     return run_agent_with_openrouter(DEBATE_PROMPT)

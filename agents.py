@@ -17,6 +17,9 @@ def hedge_fund_prompt(data):
 
 **Final Recommendation**: 
 [BUY/HOLD/SELL] - Max 15 word justification
+
+ONLY respond using the format above. Do NOT explain or repeat the instructions.
+
 """
 
 def retail_prompt(data):
@@ -38,4 +41,7 @@ def retail_prompt(data):
 
 🏆 FINAL CALL: [BUY/HOLD/SELL] 
 [Include a meme reference or crypto analogy]
+
+ONLY respond using the format above. Do NOT explain or repeat the instructions.
+
 """
