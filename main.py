@@ -1,3 +1,4 @@
+from fastapi import FastAPI
 from fetch_data import get_stock_summary
 from agents import hedge_fund_prompt, retail_prompt, news_prompt
 from llm_runner import run_agent_with_openrouter
