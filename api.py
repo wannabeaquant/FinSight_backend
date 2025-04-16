@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from main import run_all_agents
@@ -7,6 +7,8 @@ from agents import hedge_fund_prompt, retail_prompt, news_prompt
 from news_fetcher import get_google_news_rss
 from llm_runner import run_agent_with_openrouter
 from debate import conduct_debate
+import re
+from collections import Counter
 
 app = FastAPI(title="FinSight API", description="AI Multi-Agent Stock Analyzer", version="1.0")
 
@@ -25,6 +27,23 @@ class TickerRequest(BaseModel):
 def root():
     return {"message": "Welcome to FinSight API 👋 Send a POST to /analyze with a ticker symbol."}
 
+
+RATING_KEYWORDS = ["buy", "sell", "hold", "neutral"]
+
+def parse_agent_output(output: str):
+    lines = output.strip().splitlines()
+    rating = "Neutral"
+    summary = output.strip()
+
+    # Try matching against common rating phrases anywhere in the output
+    for kw in RATING_KEYWORDS:
+        pattern = re.compile(rf"\b{kw}\b", re.IGNORECASE)
+        if pattern.search(output):
+            rating = kw.capitalize()
+            break
+
+    return {"rating": rating, "summary": summary, "raw": output.strip()}
+
 @app.post("/analyze")
 def analyze_stock(req: TickerRequest):
     ticker = req.ticker.strip().upper()
@@ -32,10 +51,30 @@ def analyze_stock(req: TickerRequest):
         raise HTTPException(status_code=400, detail="Ticker cannot be empty")
 
     try:
-        result = run_all_agents(ticker)
-        if result is None:
+        raw_results = run_all_agents(ticker)
+        if raw_results is None:
             raise HTTPException(status_code=500, detail="Error analyzing ticker")
-        return {"ticker": ticker, "analysis": result}
+
+        structured_results = {
+            agent: parse_agent_output(result)
+            for agent, result in raw_results.items()
+            if agent != "consensus"
+        }
+
+        consensus_result = raw_results.get("consensus", "No consensus available")
+
+        votes = [v['rating'].lower() for v in structured_results.values() if 'rating' in v]
+        final_vote = "Neutral"
+        if votes:
+            vote_counts = Counter(votes)
+            final_vote = vote_counts.most_common(1)[0][0].capitalize()
+
+        return {
+            "ticker": ticker,
+            "agents": structured_results,
+            "final_recommendation": final_vote,
+            "consensus": consensus_result
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -43,7 +82,6 @@ def analyze_stock(req: TickerRequest):
 def analyze_via_url(ticker: str):
     return analyze_stock(TickerRequest(ticker=ticker))
 
-# 👔 HedgeFundGPT only
 @app.get("/hedgefund/{ticker}")
 def run_hedge_fund_agent(ticker: str):
     data = get_stock_summary(ticker)
@@ -54,7 +92,6 @@ def run_hedge_fund_agent(ticker: str):
     result = run_agent_with_openrouter(prompt)
     return {"agent": "HedgeFundGPT", "result": result}
 
-# 🧢 RetailGPT only
 @app.get("/retail/{ticker}")
 def run_retail_agent(ticker: str):
     data = get_stock_summary(ticker)
@@ -65,7 +102,6 @@ def run_retail_agent(ticker: str):
     result = run_agent_with_openrouter(prompt)
     return {"agent": "RetailGPT", "result": result}
 
-# 🗞️ NewsBot only
 @app.get("/news/{ticker}")
 def run_news_agent(ticker: str):
     data = get_stock_summary(ticker)
@@ -79,9 +115,6 @@ def run_news_agent(ticker: str):
     prompt = news_prompt(headlines, data)
     result = run_agent_with_openrouter(prompt)
     return {"agent": "NewsBot", "result": result}
-
-# 🤝 Consensus only (debate between agents)
-from fastapi import Query
 
 @app.get("/consensus/{ticker}")
 def run_custom_debate(ticker: str, agents: list[str] = Query(default=["hedgefund", "retail", "news"])):
@@ -129,4 +162,3 @@ def run_custom_debate(ticker: str, agents: list[str] = Query(default=["hedgefund
         "agents": valid_agents,
         "consensus": debate_result
     }
-
