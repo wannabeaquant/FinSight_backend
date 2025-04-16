@@ -81,11 +81,52 @@ def run_news_agent(ticker: str):
     return {"agent": "NewsBot", "result": result}
 
 # 🤝 Consensus only (debate between agents)
-@app.get("/consensus/{ticker}")
-def run_debate_only(ticker: str):
-    result = run_all_agents(ticker)
-    if result is None:
-        raise HTTPException(status_code=500, detail="Error during analysis")
+from fastapi import Query
 
-    debate = conduct_debate(result["HedgeFundGPT"], result["RetailGPT"], result["NewsBot"])
-    return {"ticker": ticker, "consensus": debate}
+@app.get("/consensus/{ticker}")
+def run_custom_debate(ticker: str, agents: list[str] = Query(default=["hedgefund", "retail", "news"])):
+    agent_map = {
+        "hedgefund": ("HedgeFundGPT", hedge_fund_prompt),
+        "retail": ("RetailGPT", retail_prompt),
+        "news": ("NewsBot", news_prompt)
+    }
+
+    ticker = ticker.strip().upper()
+    data = get_stock_summary(ticker)
+    if "error" in data:
+        raise HTTPException(status_code=404, detail=data["error"])
+
+    results = {}
+
+    for agent_key in agents:
+        if agent_key not in agent_map:
+            raise HTTPException(status_code=400, detail=f"Invalid agent: {agent_key}")
+
+        name, prompt_fn = agent_map[agent_key]
+
+        try:
+            if agent_key == "news":
+                headlines = get_google_news_rss(ticker)
+                if not headlines:
+                    results[name] = "⚠️ No recent news available."
+                    continue
+                prompt = prompt_fn(headlines, data)
+            else:
+                prompt = prompt_fn(data)
+
+            output = run_agent_with_openrouter(prompt)
+            results[name] = output
+        except Exception as e:
+            results[name] = f"{name} failed: {str(e)}"
+
+    valid_agents = list(results.keys())
+    if len(valid_agents) < 2:
+        raise HTTPException(status_code=400, detail="Need at least two valid agents for consensus")
+
+    debate_result = conduct_debate(*[results[name] for name in valid_agents])
+    return {
+        "ticker": ticker,
+        "agents": valid_agents,
+        "consensus": debate_result
+    }
+
