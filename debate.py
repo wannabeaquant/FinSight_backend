@@ -1,8 +1,8 @@
 from llm_runner import run_agent_with_openrouter
 
-def conduct_debate(hedge_analysis, retail_analysis):
+def conduct_debate(hedge_analysis, retail_analysis, news_analysis):
     DEBATE_PROMPT = f"""
-[STRICT DEBATE FORMAT - USE BULLET POINTS]
+[STRICT DEBATE FORMAT - INCLUDE ALL 3 PERSPECTIVES]
 
 **Financial Debate Moderator Instructions**
 Analyze these perspectives:
@@ -13,22 +13,25 @@ Analyze these perspectives:
 🦍 Retail Investor Analysis:
 {retail_analysis}
 
-**Required Elements:**
-1. Identify 3 KEY DIFFERENCES in their approaches
-2. Find 1 UNEXPECTED COMMON GROUND
-3. Highlight the MOST CONTROVERSIAL POINT
-4. Final Recommendation (BUY/HOLD/SELL) with RISK LEVEL (1-5)
+📰 News-Based Analysis:
+{news_analysis}
+
+**Instructions:**
+1. Compare how all 3 differ in methodology or assumptions
+2. Highlight a shared observation between at least 2 agents
+3. Identify the most polarizing claim
+4. Final Consensus: [BUY/HOLD/SELL] + risk score (1–5)
 
 **Output Format:**
 🤝|CONSENSUS: [RECOMMENDATION]  
 🔥|RISK LEVEL: [NUMBER]/5  
 💼|RATIONALE: [1-sentence summary]  
-⚔️|KEY DIFFERENCES:  
+📈|KEY DIFFERENCES:  
 - Difference 1  
 - Difference 2  
 - Difference 3  
-🕊️|COMMON GROUND:  
-- [Common point]  
+🧹|COMMON GROUND:  
+- [Shared insight]  
 💣|CONTROVERSY:  
 - [Most contentious issue]
 

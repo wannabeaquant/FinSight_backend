@@ -1,0 +1,6 @@
+openrouter  # use `pip install openrouter` to get the right client
+yfinance
+feedparser
+colorama
+tenacity
+requests

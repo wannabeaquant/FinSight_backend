@@ -43,5 +43,32 @@ def retail_prompt(data):
 [Include a meme reference or crypto analogy]
 
 ONLY respond using the format above. Do NOT explain or repeat the instructions.
+"""
 
+def news_prompt(headlines, data):
+    headlines_blob = "\n".join(headlines)
+
+    return f"""
+[NEWS ANALYSIS MODE]
+
+Analyze recent news headlines related to {data['name']} ({data['sector']}) stock.
+
+📰 Headlines:
+{headlines_blob}
+
+**Instructions:**
+- Identify sentiment (Positive/Negative/Neutral)
+- Highlight 2-3 key risks or opportunities mentioned
+- Mention if any catalyst exists for price movement
+- Final call: [BUY/HOLD/SELL] with 1-sentence justification
+
+ONLY respond using the following format:
+
+📊|SENTIMENT: [Positive/Negative/Neutral]  
+⚠️|KEY RISKS/OPPORTUNITIES:  
+- Bullet 1  
+- Bullet 2  
+🚀|CATALYST:  
+- [Catalyst or None]  
+🏁|RECOMMENDATION: [BUY/HOLD/SELL] – [short reasoning]
 """
