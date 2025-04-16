@@ -1,13 +1,10 @@
 import os
 from openai import OpenAI
 from tenacity import retry, stop_after_attempt, wait_exponential
-from validation import 
-from dotenv import load_dotenv
-
-load_dotenv()
+from validation import process_response
 
 # Safely get API key from env or hardcoded fallback (optional)
-API_KEY = os.getenv("LLAMA_key")
+API_KEY = os.getenv("OPENROUTER_API_KEY", "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")
 
 # Initialize OpenRouter client
 client = OpenAI(

@@ -1,5 +1,4 @@
 from fastapi import FastAPI, HTTPException
-from dotenv import load_dotenv
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from main import run_all_agents
@@ -8,8 +7,6 @@ from agents import hedge_fund_prompt, retail_prompt, news_prompt
 from news_fetcher import get_google_news_rss
 from llm_runner import run_agent_with_openrouter
 from debate import conduct_debate
-
-load_dotenv()
 
 app = FastAPI(title="FinSight API", description="AI Multi-Agent Stock Analyzer", version="1.0")
 
