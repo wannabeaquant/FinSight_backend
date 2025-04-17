@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fetch_data import get_stock_summary
-from agents import hedge_fund_prompt, retail_prompt, news_prompt
+from agents import hedge_fund_prompt, retail_prompt, news_prompt, sell_side_prompt
 from llm_runner import run_agent_with_openrouter
 from debate import conduct_debate
 from news_fetcher import get_google_news_rss
@@ -11,6 +11,7 @@ import os
 AGENTS = {
     "HedgeFundGPT": hedge_fund_prompt,
     "RetailGPT": retail_prompt,
+    "SellSideAnalyst": sell_side_prompt
 }
 
 # main.py (updated section)
@@ -63,7 +64,12 @@ def run_all_agents(ticker):
     # Run debate
     if all(v is not None for v in results.values()):
         print("\n💼 Starting Agent Debate...")
-        debate_result = conduct_debate(results['HedgeFundGPT'], results['RetailGPT'], results['NewsBot'])
+        debate_result = conduct_debate(
+            results.get('HedgeFundGPT'),
+            results.get('RetailGPT'),
+            results.get('NewsBot'),
+            results.get('SellSideAnalyst')
+        )
         results['Consensus'] = debate_result
         print("\n🤝 Final Consensus:")
         print(debate_result)

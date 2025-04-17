@@ -1,9 +1,10 @@
 from llm_runner import run_agent_with_openrouter
 
-def conduct_debate(hedge_analysis=None, retail_analysis=None, news_analysis=None):
+def conduct_debate(hedge_analysis=None, retail_analysis=None, news_analysis=None, sellside_analysis=None):
     hedge_section = f"🦈 Hedge Fund Analysis:\n{hedge_analysis}\n" if hedge_analysis else ""
     retail_section = f"🦍 Retail Investor Analysis:\n{retail_analysis}\n" if retail_analysis else ""
     news_section = f"📰 News-Based Analysis:\n{news_analysis}\n" if news_analysis else ""
+    sellside_section = f"💼 Sell-Side Analyst Report:\n{sellside_analysis}\n" if sellside_analysis else ""
 
     DEBATE_PROMPT = f"""
 [STRICT DEBATE FORMAT - INCLUDE ALL PERSPECTIVES PRESENT]
@@ -11,7 +12,7 @@ def conduct_debate(hedge_analysis=None, retail_analysis=None, news_analysis=None
 **Financial Debate Moderator Instructions**
 Analyze these perspectives:
 
-{hedge_section}{retail_section}{news_section}
+{hedge_section}{retail_section}{news_section}{sellside_section}
 
 **Instructions:**
 1. Compare how the perspectives differ in methodology or assumptions.
@@ -33,6 +34,6 @@ Analyze these perspectives:
 - [Most contentious issue]
 
 ONLY respond using the format above. Do NOT explain or repeat the instructions.
-"""
+""".strip()
 
     return run_agent_with_openrouter(DEBATE_PROMPT)

@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from main import run_all_agents
 from fetch_data import get_stock_summary
-from agents import hedge_fund_prompt, retail_prompt, news_prompt
+from agents import hedge_fund_prompt, retail_prompt, news_prompt, sell_side_prompt
 from news_fetcher import get_google_news_rss
 from llm_runner import run_agent_with_openrouter
 from debate import conduct_debate
@@ -118,12 +118,23 @@ def run_news_agent(ticker: str):
     result = run_agent_with_openrouter(prompt)
     return {"agent": "NewsBot", "result": result}
 
+@app.get("/sellside/{ticker}")
+def run_sell_side_agent(ticker: str):
+    data = get_stock_summary(ticker)
+    if "error" in data:
+        raise HTTPException(status_code=404, detail=data["error"])
+
+    prompt = sell_side_prompt(data)
+    result = run_agent_with_openrouter(prompt)
+    return {"agent": "SellSideAnalyst", "result": result}
+
 @app.get("/consensus/{ticker}")
-def run_custom_debate(ticker: str, agents: list[str] = Query(default=["hedgefund", "retail", "news"])):
+def run_custom_debate(ticker: str, agents: list[str] = Query(default=["hedgefund", "retail", "news", "sellside"])):
     agent_map = {
         "hedgefund": ("HedgeFundGPT", hedge_fund_prompt),
         "retail": ("RetailGPT", retail_prompt),
-        "news": ("NewsBot", news_prompt)
+        "news": ("NewsBot", news_prompt),
+        "sellside": ("SellSideAnalyst", sell_side_prompt)
     }
 
     ticker = ticker.strip().upper()
@@ -157,7 +168,8 @@ def run_custom_debate(ticker: str, agents: list[str] = Query(default=["hedgefund
     debate_args = {
         "HedgeFundGPT": None,
         "RetailGPT": None,
-        "NewsBot": None
+        "NewsBot": None,
+        "SellSideAnalyst": None
     }
 
     for name in debate_args:
@@ -172,7 +184,8 @@ def run_custom_debate(ticker: str, agents: list[str] = Query(default=["hedgefund
     debate_result = conduct_debate(
         hedge_analysis=debate_args["HedgeFundGPT"],
         retail_analysis=debate_args["RetailGPT"],
-        news_analysis=debate_args["NewsBot"]
+        news_analysis=debate_args["NewsBot"],
+        sellside_analysis=debate_args["SellSideAnalyst"]
     )
 
     return {
@@ -185,12 +198,23 @@ def run_custom_debate(ticker: str, agents: list[str] = Query(default=["hedgefund
 def follow_up_response(request: FollowUpRequest):
     from llm_runner import run_agent_with_openrouter
 
-    prompt = (
-        f"Here is the consensus analysis from multiple agents:\n\n"
-        f"{request.consensus}\n\n"
-        f"The user has a follow-up question: {request.user_question}\n\n"
-        f"Respond as an expert AI assistant, continuing the conversation and offering insight based on the consensus."
-    )
+    prompt = f"""
+You are a seasoned financial analyst AI following up on an investor's question.
+
+🧠 Here is the consensus analysis provided earlier:
+{request.consensus}
+
+🙋 The investor now asks:
+"{request.user_question}"
+
+📌 Your task:
+- Provide a clear and concise expert-level response.
+- Reference key points from the consensus analysis.
+- Include relevant data, trends, or reasoning that supports your reply.
+- Maintain a confident, professional tone — no fluff.
+
+Respond directly and helpfully to the investor’s question below:
+"""
 
     try:
         response = run_agent_with_openrouter(prompt)

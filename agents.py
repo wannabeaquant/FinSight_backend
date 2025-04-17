@@ -72,3 +72,28 @@ ONLY respond using the following format:
 - [Catalyst or None]  
 🏁|RECOMMENDATION: [BUY/HOLD/SELL] – [short reasoning]
 """
+
+def sell_side_prompt(data):
+    return f"""
+[FORMAL SELL-SIDE ANALYST REPORT FORMAT]
+
+## Sell-Side Analyst View: {data['name']} ({data['sector']})
+
+**Snapshot**:
+- Market Cap: {data['market_cap']}
+- EPS: {data['eps']}
+- P/E Ratio: {data['pe_ratio']}
+
+**Coverage Report Highlights:**
+1. Recent Performance: Discuss recent earnings and revenue trend.
+2. Forecasts: Mention any industry outlook or company guidance.
+3. Valuation: Is the stock fairly priced compared to peers?
+
+**Investment Risks:**
+- Highlight any macroeconomic, regulatory, or competitive threats.
+
+**Recommendation:**
+[BUY/HOLD/SELL] with short rationale (max 2 lines).
+
+ONLY respond using the format above. Do NOT explain or repeat the instructions.
+"""
