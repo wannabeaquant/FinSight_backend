@@ -23,10 +23,13 @@ app.add_middleware(
 class TickerRequest(BaseModel):
     ticker: str
 
+class FollowUpRequest(BaseModel):
+    consensus: str
+    user_question: str
+
 @app.get("/")
 def root():
     return {"message": "Welcome to FinSight API 👋 Send a POST to /analyze with a ticker symbol."}
-
 
 RATING_KEYWORDS = ["buy", "sell", "hold", "neutral"]
 
@@ -35,7 +38,6 @@ def parse_agent_output(output: str):
     rating = "Neutral"
     summary = output.strip()
 
-    # Try matching against common rating phrases anywhere in the output
     for kw in RATING_KEYWORDS:
         pattern = re.compile(rf"\b{kw}\b", re.IGNORECASE)
         if pattern.search(output):
@@ -152,13 +154,46 @@ def run_custom_debate(ticker: str, agents: list[str] = Query(default=["hedgefund
         except Exception as e:
             results[name] = f"{name} failed: {str(e)}"
 
-    valid_agents = list(results.keys())
+    debate_args = {
+        "HedgeFundGPT": None,
+        "RetailGPT": None,
+        "NewsBot": None
+    }
+
+    for name in debate_args:
+        if name in results and not results[name].startswith("⚠️") and "failed" not in results[name]:
+            debate_args[name] = results[name]
+
+    valid_agents = [k for k, v in debate_args.items() if v is not None]
+
     if len(valid_agents) < 2:
         raise HTTPException(status_code=400, detail="Need at least two valid agents for consensus")
 
-    debate_result = conduct_debate(*[results[name] for name in valid_agents])
+    debate_result = conduct_debate(
+        hedge_analysis=debate_args["HedgeFundGPT"],
+        retail_analysis=debate_args["RetailGPT"],
+        news_analysis=debate_args["NewsBot"]
+    )
+
     return {
         "ticker": ticker,
         "agents": valid_agents,
         "consensus": debate_result
     }
+
+@app.post("/follow-up")
+def follow_up_response(request: FollowUpRequest):
+    from llm_runner import run_agent_with_openrouter
+
+    prompt = (
+        f"Here is the consensus analysis from multiple agents:\n\n"
+        f"{request.consensus}\n\n"
+        f"The user has a follow-up question: {request.user_question}\n\n"
+        f"Respond as an expert AI assistant, continuing the conversation and offering insight based on the consensus."
+    )
+
+    try:
+        response = run_agent_with_openrouter(prompt)
+        return {"response": response}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
