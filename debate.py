@@ -1,4 +1,4 @@
-from llm_runner import run_agent_with_openrouter
+from llm_runner import run_agent_with_groq
 
 def conduct_debate(hedge_analysis=None, retail_analysis=None, news_analysis=None, sellside_analysis=None):
     hedge_section = f"🦈 Hedge Fund Analysis:\n{hedge_analysis}\n" if hedge_analysis else ""
@@ -36,4 +36,4 @@ Analyze these perspectives:
 ONLY respond using the format above. Do NOT explain or repeat the instructions.
 """.strip()
 
-    return run_agent_with_openrouter(DEBATE_PROMPT)
+    return run_agent_with_groq(DEBATE_PROMPT)

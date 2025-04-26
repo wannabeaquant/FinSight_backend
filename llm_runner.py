@@ -3,30 +3,25 @@ from openai import OpenAI
 from tenacity import retry, stop_after_attempt, wait_exponential
 from validation import process_response
 
-# Safely get API key from env or hardcoded fallback (optional)
+# Update to use Groq API key
 API_KEY = os.getenv("API_KEY")
 
-# Initialize OpenRouter client
+# Initialize Groq client
 client = OpenAI(
-    base_url="https://openrouter.ai/api/v1",
-    api_key=API_KEY,
-    default_headers={
-        "HTTP-Referer": "http://localhost",
-        "X-Title": "FinSight"
-    }
+    base_url="https://api.groq.com/openai/v1",
+    api_key=API_KEY
 )
 
 @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
-def run_agent_with_openrouter(prompt):
+def run_agent_with_groq(prompt):  # Renamed function
     try:
-        print("✅ Prompt ready to send to OpenRouter...")
+        print("✅ Prompt ready to send to Groq...")
         print("=" * 60)
         print(prompt)
         print("=" * 60)
 
-        # Perform chat completion
         response = client.chat.completions.create(
-            model="meta-llama/llama-3-70b-instruct",
+            model="llama3-70b-8192",  # Updated model name
             messages=[
                 {"role": "user", "content": prompt}
             ],
@@ -35,17 +30,16 @@ def run_agent_with_openrouter(prompt):
             top_p=1,
             frequency_penalty=0.2,
             presence_penalty=0,
-        )
+)
 
-        # Check and return result
         if response.choices and len(response.choices) > 0:
             reply = response.choices[0].message.content.strip()
-            print("✅ Got response from OpenRouter.")
+            print("✅ Got response from Groq.")
             return process_response(reply)
         else:
-            print("❌ No choices returned by OpenRouter.")
+            print("❌ No choices returned by Groq.")
             return "Analysis failed: No response choices received."
 
     except Exception as e:
-        print(f"❌ Exception during OpenRouter call: {e}")
+        print(f"❌ Exception during Groq call: {e}")
         return f"Analysis failed: {str(e)}"

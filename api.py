@@ -5,7 +5,7 @@ from main import run_all_agents
 from fetch_data import get_stock_summary
 from agents import hedge_fund_prompt, retail_prompt, news_prompt, sell_side_prompt
 from news_fetcher import get_google_news_rss
-from llm_runner import run_agent_with_openrouter
+from llm_runner import run_agent_with_groq
 from debate import conduct_debate
 import re
 from collections import Counter
@@ -91,7 +91,7 @@ def run_hedge_fund_agent(ticker: str):
         raise HTTPException(status_code=404, detail=data["error"])
 
     prompt = hedge_fund_prompt(data)
-    result = run_agent_with_openrouter(prompt)
+    result = run_agent_with_groq(prompt)
     return {"agent": "HedgeFundGPT", "result": result}
 
 @app.get("/retail/{ticker}")
@@ -101,7 +101,7 @@ def run_retail_agent(ticker: str):
         raise HTTPException(status_code=404, detail=data["error"])
 
     prompt = retail_prompt(data)
-    result = run_agent_with_openrouter(prompt)
+    result = run_agent_with_groq(prompt)
     return {"agent": "RetailGPT", "result": result}
 
 @app.get("/news/{ticker}")
@@ -115,7 +115,7 @@ def run_news_agent(ticker: str):
         return {"agent": "NewsBot", "result": "⚠️ No recent news available."}
 
     prompt = news_prompt(headlines, data)
-    result = run_agent_with_openrouter(prompt)
+    result = run_agent_with_groq(prompt)
     return {"agent": "NewsBot", "result": result}
 
 @app.get("/sellside/{ticker}")
@@ -125,7 +125,7 @@ def run_sell_side_agent(ticker: str):
         raise HTTPException(status_code=404, detail=data["error"])
 
     prompt = sell_side_prompt(data)
-    result = run_agent_with_openrouter(prompt)
+    result = run_agent_with_groq(prompt)
     return {"agent": "SellSideAnalyst", "result": result}
 
 @app.get("/consensus/{ticker}")
@@ -160,7 +160,7 @@ def run_custom_debate(ticker: str, agents: list[str] = Query(default=["hedgefund
             else:
                 prompt = prompt_fn(data)
 
-            output = run_agent_with_openrouter(prompt)
+            output = run_agent_with_groq(prompt)
             results[name] = output
         except Exception as e:
             results[name] = f"{name} failed: {str(e)}"
@@ -196,7 +196,7 @@ def run_custom_debate(ticker: str, agents: list[str] = Query(default=["hedgefund
 
 @app.post("/follow-up")
 def follow_up_response(request: FollowUpRequest):
-    from llm_runner import run_agent_with_openrouter
+    from llm_runner import run_agent_with_groq
 
     prompt = f"""
 You are a seasoned financial analyst AI following up on an investor's question.
@@ -217,7 +217,7 @@ Respond directly and helpfully to the investor’s question below:
 """
 
     try:
-        response = run_agent_with_openrouter(prompt)
+        response = run_agent_with_groq(prompt)
         return {"response": response}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

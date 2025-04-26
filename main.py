@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fetch_data import get_stock_summary
 from agents import hedge_fund_prompt, retail_prompt, news_prompt, sell_side_prompt
-from llm_runner import run_agent_with_openrouter
+from llm_runner import run_agent_with_groq
 from debate import conduct_debate
 from news_fetcher import get_google_news_rss
 from colorama import Fore, Style, init
@@ -34,7 +34,7 @@ def run_all_agents(ticker):
 
             prompt = prompt_fn(data)
             print(f"\n🚀 Running {name}...")
-            output = run_agent_with_openrouter(prompt)
+            output = run_agent_with_groq(prompt)
             results[name] = output
             print(f"\n✅ {name} Completed:")
             print(output)
@@ -53,7 +53,7 @@ def run_all_agents(ticker):
         news_analysis = "⚠️ No recent news available."
     else:
         news_prompt_blob = news_prompt(headlines, data)
-        news_analysis = run_agent_with_openrouter(news_prompt_blob)
+        news_analysis = run_agent_with_groq(news_prompt_blob)
 
     print("\n✅ NewsBot Completed:")
     print(news_analysis)
