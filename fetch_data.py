@@ -2,7 +2,7 @@ import os
 import requests
 from tenacity import retry, wait_exponential, stop_after_attempt
 
-FINNHUB_API_KEY = os.getenv("FINNHUB_API_KEY", "d0ghsqpr01qhao4toko0d0ghsqpr01qhao4tokog")
+FINNHUB_API_KEY = os.getenv("FINNHUB_API_KEY")
 
 @retry(wait=wait_exponential(multiplier=1, min=2, max=30),
        stop=stop_after_attempt(3))
