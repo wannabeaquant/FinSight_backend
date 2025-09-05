@@ -21,7 +21,7 @@ def run_agent_with_groq(prompt):  # Renamed function
         print("=" * 60)
 
         response = client.chat.completions.create(
-            model="llama3-70b-8192",  # Updated model name
+            model="llama-3.3-70b-versatile",  # Updated model name
             messages=[
                 {"role": "user", "content": prompt}
             ],
